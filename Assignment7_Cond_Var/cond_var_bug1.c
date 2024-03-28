@@ -71,7 +71,8 @@ int main(int argc, char *argv[])
   int i;
   pthread_t threads[3];
 
-  pthread_hooks_init();
+  pthread_hooks_init(); // logging initialization, do not remove.
+  
   printf("Main(): process start\n");
 
   /* Initialize mutex and condition variable objects */

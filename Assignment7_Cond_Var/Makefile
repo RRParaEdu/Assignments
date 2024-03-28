@@ -3,7 +3,7 @@ WRAP_FLAGS = -fno-builtin -Wl,--wrap=pthread_mutex_lock -Wl,--wrap=pthread_mutex
 C_FLAGS = -g -Wall -pthread $(WRAP_FLAGS)
 LD_FLAGS = -L../Pthread_Hooks/
 LIBS = -lm
-SOURCES = cond_var_bug1.c
+SOURCES = cond_var_bug1.c chained_consumers.c barrier_impl.c
 OBJECTS = $(SOURCES:%.c=%.o)
 BINS = $(OBJECTS:%.o=%.bin)
 PHOOKS_SOURCES = ../Pthread_Hooks/pthread_hooks.c
