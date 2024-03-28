@@ -51,7 +51,8 @@ void *mid_consumer(void *t)
 
   printf("mid consumer thread %d start\n", tid);
 
-  /* TOOD: please add code to wait on the condition variable for product 2*/
+  /* TOOD: please add code to wait on the condition variable for product 1 and
+     notify the final consumer for product 2*/
   printf("Consuming product 1\n");
   product1--;
 
