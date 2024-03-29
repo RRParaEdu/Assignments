@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
   pthread_mutex_destroy(&count_mutex);
   pthread_cond_destroy(&count_condvar);
 
-  printf("Main(): process end");
+  printf("Main(): process end\n");
   
   return 0;
 

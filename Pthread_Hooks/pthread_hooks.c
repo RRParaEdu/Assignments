@@ -17,7 +17,7 @@
 #include "pthread_hooks.h"
 
 __thread int tid = -1; // thread id
-int enable_log = 0; // flag to control if log is enabled or not
+int enable_log = 1; // flag to control if log is enabled or not
 
 // pointer to real pthread functions
 extern int __real_pthread_mutex_lock(pthread_mutex_t *mutex);
@@ -48,62 +48,102 @@ int pthread_hooks_init()
 	// check if logging is enabled.
         env_val = getenv(ENV_ENABLE_PTHREAD_HOOKS);
 
-	if (env_val != NULL && strncmp(env_val, "1", 2) == 0){
-		enable_log = 1;
+	if (env_val != NULL && strncmp(env_val, "0", 2) == 0){
+		enable_log = 0;
 	}
+	else
+		enable_log = 1;
 
 	return 0;
 }
 	
 int __wrap_pthread_mutex_lock(pthread_mutex_t *mutex)
 {
-	phooks_dprintf(enable_log, "time %llu thread %d: lock mutex 0x%02x\n",
-		       rdtsc(), tid, mutex);
+	int ret = 0;
+	unsigned long long int mutex_addr =
+		((unsigned long long int)mutex) & 0xffff;
 	
-	return __real_pthread_mutex_lock(mutex);
+	// for readibility, only print last two digits of the mutex addr
+	phooks_dprintf(enable_log,
+		       "time %llu thread %d: locking mutex 0x%02x\n",
+		       rdtsc(), tid, mutex_addr); 
+	
+	ret =  __real_pthread_mutex_lock(mutex);
+
+	phooks_dprintf(enable_log, "time %llu thread %d: mutex 0x%02x locked\n",
+		       rdtsc(), tid, mutex_addr);
+	
+	return ret;
 }
 
 int __wrap_pthread_mutex_unlock(pthread_mutex_t *mutex)
-{
-	phooks_dprintf(enable_log, "time %llu thread %d: unlock mutex %04p\n",
-		       rdtsc(), tid, mutex);
+{	
+	unsigned long long int mutex_addr =
+		((unsigned long long int)mutex) & 0xffff;
+	
+	phooks_dprintf(enable_log, "time %llu thread %d: unlock mutex 0x%02x\n",
+		       rdtsc(), tid, mutex_addr);
 	
 	return __real_pthread_mutex_unlock(mutex);
 }
 
-int __wrap_pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex)
+int __wrap_pthread_cond_wait(pthread_cond_t *restrict cond,
+			     pthread_mutex_t *restrict mutex)
 {
-	phooks_dprintf(enable_log,
-		       "time %llu thread %d: wait for cond %p with mutex %p\n",
-		       rdtsc(), tid, cond, mutex);
+	int ret = 0;
+	unsigned long long int mutex_addr =
+		((unsigned long long int)mutex) & 0xffff;
+	unsigned long long int cond_addr =
+		((unsigned long long int)cond) & 0xffff;
 	
-	return __real_pthread_cond_wait(cond, mutex);
+	phooks_dprintf(enable_log,
+		       "time %llu thread %d: wait for cond 0x%02x "
+		       "with mutex 0x%02x\n",
+		       rdtsc(), tid, cond_addr, mutex_addr);
+	
+	ret =  __real_pthread_cond_wait(cond, mutex);
+
+	phooks_dprintf(enable_log,
+		       "time %llu thread %d: cond 0x%02x wait done.\n",
+		       rdtsc(), tid, cond_addr);
+
+	return ret;
 }
 
 
 int __wrap_pthread_cond_broadcast(pthread_cond_t *cond)
 {
+	unsigned long long int cond_addr =
+		((unsigned long long int)cond) & 0xffff;
+	
 	phooks_dprintf(enable_log,
-		       "time %llu thread %d: broadcast for cond %p\n",
-		       rdtsc(), tid, cond);
+		       "time %llu thread %d: broadcast for cond 0x%02x\n",
+		       rdtsc(), tid, cond_addr);
 	
 	return __real_pthread_cond_broadcast(cond);
 }
 
 int __wrap_pthread_cond_signal(pthread_cond_t *cond)
 {
+	unsigned long long int cond_addr =
+		((unsigned long long int)cond) & 0xffff;
+	
 	phooks_dprintf(enable_log,
-		       "time %llu thread %d: signal for cond %p\n",
-		       rdtsc(), tid, cond);
+		       "time %llu thread %d: signal for cond 0x%02x\n",
+		       rdtsc(), tid, cond_addr);
 	
 	return __real_pthread_cond_signal(cond);
 }
 
 int __wrap_printf(const char* format, ...) {
     va_list args;
+    char buff[256] = {0};
+    
     va_start(args, format);
-    __real_printf("time %llu thread %d: ", rdtsc(), tid);
-    int result = vprintf(format, args);
+    snprintf(buff, 256, "time %llu thread %d: %s", rdtsc(), tid, format);
+    // for thread-safety, cannot call real printf than vprintf.
+    //__real_printf("time %llu thread %d: ", rdtsc(), tid); 
+    int result = vprintf(buff, args);
     va_end(args);
     return result;
 }

@@ -28,12 +28,12 @@ int pthread_hooks_init();
 void *producer(void *t)
 {
   int tid = *(int*)t;
- 
+  sleep(2); // delay product1 generation, do not remove this line.
+  
   printf("producer thread %d start\n", tid);
-  sleep(1); // delay product1 generation, do not remove this line.
-
-  /* TOOD: please add code to use the condition variable to notify the
-     intermediate consumer */
+  
+  /* TOOD: from here, please add code to use the condition variable to notify
+     the intermediate consumer */
   printf("Generating product 1\n");
   product1++;
 
@@ -49,10 +49,12 @@ void *mid_consumer(void *t)
 {
   int tid = *(int*)t;
 
+  sleep(1); // delay mid consumer, do not remove this line.
+
   printf("mid consumer thread %d start\n", tid);
 
-  /* TOOD: please add code to wait on the condition variable for product 1 and
-     notify the final consumer for product 2*/
+  /* TOOD: from here, please add code to wait on the condition variable for
+     product 1 and notify the final consumer for product 2*/
   printf("Consuming product 1\n");
   product1--;
 
@@ -73,7 +75,8 @@ void *final_consumer(void *t)
 
   printf("final consumer thread %d start\n", tid);
 
-  /* TOOD: please add code to wait on the condition variable for product 2*/
+  /* TOOD: from here, please add code to wait on the condition variable for
+     product 2*/
   printf("Consuming product 2\n");
   product2--;
 
@@ -96,7 +99,7 @@ int main(int argc, char *argv[])
   pthread_mutex_init(&count_mutex, NULL);
   pthread_cond_init (&count_condvar, NULL);
 
-  /* creating two sub2 threads and one sub1 thread */
+  /* creating consumer and producer threads, do not change this code */
   pthread_create(&threads[0], NULL, producer, (void *)&t1);
   pthread_create(&threads[1], NULL, mid_consumer, (void *)&t2);
   pthread_create(&threads[2], NULL, final_consumer, (void *)&t3);
@@ -112,7 +115,7 @@ int main(int argc, char *argv[])
   pthread_mutex_destroy(&count_mutex);
   pthread_cond_destroy(&count_condvar);
 
-  printf("Main(): process end");
+  printf("Main(): process end\n");
   
   return 0;
 
