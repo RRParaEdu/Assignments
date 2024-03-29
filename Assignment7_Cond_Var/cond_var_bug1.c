@@ -1,6 +1,8 @@
 /*
- *   This program demonstrates a condition variable race/synchronization 
+ *   This program demonstrates a condition variable racing/synchronization 
  *   problem.
+ *
+ *   Please correct this program to fix the race condition.
  *
  */
 #include <pthread.h>
@@ -13,8 +15,8 @@
 /* Define and scope what needs to be seen by everyone */
 #define NUM_THREADS  3
 int count = 0;
-pthread_mutex_t count_mutex;
-pthread_cond_t count_condvar;
+pthread_mutex_t mutex;
+pthread_cond_t condvar;
 
 int pthread_hooks_init();
 
@@ -27,15 +29,15 @@ void *producer(void *t)
  
   printf("producer thread %d start\n", tid);
   
-  pthread_mutex_lock(&count_mutex);printf("mutex locked\n");
+  pthread_mutex_lock(&mutex);
 
   count++;
   count++;
   printf("Two Produced\n");
-  pthread_cond_signal(&count_condvar);printf("cond signal\n");
-  pthread_cond_signal(&count_condvar);printf("cond signal\n");  
+  pthread_cond_signal(&condvar);
+  pthread_cond_signal(&condvar);
 
-  pthread_mutex_unlock(&count_mutex);printf("mutex unlocked\n");
+  pthread_mutex_unlock(&mutex);
 
   printf("producer thread %d end\n", tid);
   
@@ -51,14 +53,13 @@ void *consumer(void *t)
 
   printf("consumer thread %d start\n", tid);
 
-  pthread_mutex_lock(&count_mutex);printf("mutex locked\n");
+  pthread_mutex_lock(&mutex);
 
-  printf("wait on cond\n");
-  pthread_cond_wait(&count_condvar, &count_mutex);
-  printf("cond wait end\n");
-  count--;printf("consumed one\n");
+  pthread_cond_wait(&condvar, &mutex);
+  count--;
+  printf("consumed one\n");
   
-  pthread_mutex_unlock(&count_mutex);printf("mutex_unlocked\n");
+  pthread_mutex_unlock(&mutex);
 
   printf("consumer thread %d end\n", tid);
   
@@ -76,8 +77,8 @@ int main(int argc, char *argv[])
   printf("Main(): process start\n");
 
   /* Initialize mutex and condition variable objects */
-  pthread_mutex_init(&count_mutex, NULL);
-  pthread_cond_init (&count_condvar, NULL);
+  pthread_mutex_init(&mutex, NULL);
+  pthread_cond_init (&condvar, NULL);
 
   /* creating two sub2 threads and one sub1 thread */
   pthread_create(&threads[0], NULL, producer, (void *)&t1);
@@ -92,8 +93,8 @@ int main(int argc, char *argv[])
           NUM_THREADS);
 
   /* Clean up and exit */
-  pthread_mutex_destroy(&count_mutex);
-  pthread_cond_destroy(&count_condvar);
+  pthread_mutex_destroy(&mutex);
+  pthread_cond_destroy(&condvar);
 
   printf("Main(): process end\n");
   

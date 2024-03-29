@@ -17,8 +17,8 @@
 #define NUM_THREADS  3
 int product1 = 0;
 int product2 = 0;
-pthread_mutex_t count_mutex;
-pthread_cond_t count_condvar;
+pthread_mutex_t mutex;
+pthread_cond_t condvar;
 
 int pthread_hooks_init();
 
@@ -96,8 +96,8 @@ int main(int argc, char *argv[])
   printf("Main(): process start\n");
 
   /* Initialize mutex and condition variable objects */
-  pthread_mutex_init(&count_mutex, NULL);
-  pthread_cond_init (&count_condvar, NULL);
+  pthread_mutex_init(&mutex, NULL);
+  pthread_cond_init (&condvar, NULL);
 
   /* creating consumer and producer threads, do not change this code */
   pthread_create(&threads[0], NULL, producer, (void *)&t1);
@@ -112,8 +112,8 @@ int main(int argc, char *argv[])
           NUM_THREADS);
 
   /* Clean up and exit */
-  pthread_mutex_destroy(&count_mutex);
-  pthread_cond_destroy(&count_condvar);
+  pthread_mutex_destroy(&mutex);
+  pthread_cond_destroy(&condvar);
 
   printf("Main(): process end\n");
   
