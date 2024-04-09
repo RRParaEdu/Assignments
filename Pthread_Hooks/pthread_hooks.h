@@ -29,4 +29,16 @@ static __inline__ unsigned long long rdtsc(void)
 
 #define ENV_ENABLE_PTHREAD_HOOKS "ENABLE_PTHREAD_HOOKS"
 
+/*
+ * for gettid, undefined in older glibc
+ */
+#include <unistd.h>
+#include <sys/syscall.h>
+
+#ifndef SYS_gettid
+#error "SYS_gettid unavailable on this system"
+#endif
+
+#define gettid() ((pid_t)syscall(SYS_gettid))
+
 #endif

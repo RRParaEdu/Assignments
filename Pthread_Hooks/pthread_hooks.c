@@ -22,14 +22,14 @@ int enable_log = 1; // flag to control if log is enabled or not
 // pointer to real pthread functions
 extern int __real_pthread_mutex_lock(pthread_mutex_t *mutex);
 extern int __real_pthread_mutex_unlock(pthread_mutex_t *mutex);
-extern int __real_pthread_cond_wait(pthread_cond_t *restrict cond,
-				    pthread_mutex_t *restrict mutex);
+extern int __real_pthread_cond_wait(pthread_cond_t *cond,
+				    pthread_mutex_t *mutex);
 extern int __real_pthread_cond_broadcast(pthread_cond_t *cond);
 extern int __real_pthread_cond_signal(pthread_cond_t *cond);
-extern int __real_pthread_create(pthread_t *restrict thread,
-				 const pthread_attr_t *restrict attr,
+extern int __real_pthread_create(pthread_t *thread,
+				 const pthread_attr_t *attr,
 				 void *(*start_routine)(void *),
-				 void *restrict arg);
+				 void *arg);
 
 extern int __real_printf(const char*, ...);
      
@@ -87,8 +87,8 @@ int __wrap_pthread_mutex_unlock(pthread_mutex_t *mutex)
 	return __real_pthread_mutex_unlock(mutex);
 }
 
-int __wrap_pthread_cond_wait(pthread_cond_t *restrict cond,
-			     pthread_mutex_t *restrict mutex)
+int __wrap_pthread_cond_wait(pthread_cond_t *cond,
+			     pthread_mutex_t *mutex)
 {
 	int ret = 0;
 	unsigned long long int mutex_addr =
@@ -173,10 +173,10 @@ void* pthread_hooks_thread_func(void *param)
 	return ret_val;
 }
 
-int __wrap_pthread_create(pthread_t *restrict thread,
-			  const pthread_attr_t *restrict attr,
+int __wrap_pthread_create(pthread_t *thread,
+			  const pthread_attr_t *attr,
 			  void *(*start_routine)(void *),
-			  void *restrict arg)
+			  void *arg)
 {
 	struct pthread_hooks_thread_data * p = NULL;
 	
